@@ -6,7 +6,7 @@ from time import strftime
 from twilio.rest import Client
 import tkMessageBox
 
-def triangulate(array,file,sms,overlay):
+def triangulate(array,file,sms,overlay,values,width,height,units):
     #init method
     start = strftime("%Y-%m-%d %H:%M:%S")
     print start
@@ -15,6 +15,12 @@ def triangulate(array,file,sms,overlay):
     #bools
     send_sms = sms
     overlay_image = overlay
+
+    #enter dimentions
+    dimentions_entered = values
+    _width = float(width)
+    _height = float(height)
+    _units = units
 
 
     im = plt.imread(file + "_temp.png")
@@ -85,6 +91,14 @@ def triangulate(array,file,sms,overlay):
     # final answer
     average = round(np.average(distances),2)
     standard_deviation = round(np.std(distances),2)
+    units = "pixels"
+
+    if dimentions_entered == True:
+        ratio = _width/width
+        average = round(average*ratio,2)
+        standard_deviation = round(standard_deviation*ratio,2)
+        units = _units
+
     end = strftime("%Y-%m-%d %H:%M:%S")
     print end
 
@@ -94,6 +108,8 @@ def triangulate(array,file,sms,overlay):
     message_box.append(str(average))
     message_box.append(" StDev: ")
     message_box.append(str(standard_deviation))
+    message_box.append(" ")
+    message_box.append(units)
     mb = ''.join(message_box)
 
     #print message
@@ -110,8 +126,11 @@ def triangulate(array,file,sms,overlay):
         message_for_sms = []
         message_for_sms.append("AFM Calculation complete! , the average distance between the features is:")
         message_for_sms.append(str(int(average)))
-        message_for_sms.append(" pixels. ")
-        message_for_sms.append("The calculation started at: ")
+        message_for_sms.append(" +/ ")
+        message_for_sms.append(str(standard_deviation))
+        message_for_sms.append(" ")
+        message_for_sms.append(units)
+        message_for_sms.append(" The calculation started at: ")
         message_for_sms.append(str(start))
         message_for_sms.append(" and ended at: ")
         message_for_sms.append(str(end))
