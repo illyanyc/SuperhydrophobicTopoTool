@@ -37,13 +37,14 @@ class MyForm(wx.Frame):
         self._phone = wx.TextCtrl(panel, -1, size=(175, -1))
         self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
         self.img_overlay_chk =  wx.CheckBox(panel, -1, 'Overlay image', (15, 55))
+        self.num_tri = wx.CheckBox(panel, -1, 'Number triangles', (15, 55))
 
 
 
         #LoadFile_btn.Bind(wx.EVT_BUTTON, self.onButton)
         #ProcessFile_btn.Bind(wx.EVT_BUTTON, self.onButton)
 
-        buttons = [LoadFile_btn, ProcessFile1_btn, self.enter_units, lbl1, self._width, lbl2, self._height, lbl3, self._units, lbl4, self._phone, self.sms_note_chk, self.img_overlay_chk, ProcessFile2_btn]
+        buttons = [LoadFile_btn, ProcessFile1_btn, self.enter_units, lbl1, self._width, lbl2, self._height, lbl3, self._units, lbl4, self._phone, self.sms_note_chk, self.img_overlay_chk, self.num_tri, ProcessFile2_btn]
 
         for button in buttons:
             self.buildButtons(button, sizer)
@@ -93,7 +94,7 @@ class MyForm(wx.Frame):
            control = wx.StaticBitmap(self, -1, bitmap)
            control.SetPosition((200, 10))
            w= w+240
-           h= h+80
+           h= h+140
            self.SetSize((w, h))
 
            openFileDialog.Destroy()
@@ -127,7 +128,8 @@ class MyForm(wx.Frame):
            height = self._height.GetValue()
            units = self._units.GetValue()
            phone = self._phone.GetValue()
-           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone)
+           tri = self.num_tri.GetValue()
+           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone,tri)
            #fr.find_relationships(attributes, fileToOpen)
            #print("Identifying edges")
 
