@@ -29,11 +29,13 @@ def process_image(img_path):
         if M["m00"] == 0:
             M["m00"] = 1
 
+        area = cv2.contourArea(c)
+
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
 
         try:
-            coordinates = [i, cX, cY, moments]
+            coordinates = [i, cX, cY, moments, area]
             attributes.append(coordinates)
         except:
             print "no attribute"

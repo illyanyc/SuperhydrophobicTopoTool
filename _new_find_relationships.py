@@ -11,6 +11,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone):
     start = strftime("%Y-%m-%d %H:%M:%S")
     print start
     distances = []
+    areas = []
 
     #bools
     send_sms = sms
@@ -19,9 +20,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone):
 
     #enter dimentions
     dimentions_entered = values
-    _width = float(width)
-    _height = float(height)
-    _units = units
+    if dimentions_entered == True:
+        _width = float(width)
+        _height = float(height)
+        _units = units
 
 
     im = plt.imread(file + "_temp.png")
@@ -37,6 +39,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone):
         x=a[1]
         y=a[2]
         working_array.append([x,y])
+
+    for b in array:
+        area = b[4]
+        areas.append(area)
 
     #array of points
     attributes = np.array(working_array)
@@ -90,6 +96,8 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone):
             distances.append(distance)
 
     # final answer
+    areas_avg =np.average(areas)
+    diameter = round(2*np.sqrt(areas_avg*np.pi),2)
     average = round(np.average(distances),2)
     standard_deviation = round(np.std(distances),2)
     units = "pixels"
@@ -98,6 +106,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone):
         ratio = _width/width
         average = round(average*ratio,2)
         standard_deviation = round(standard_deviation*ratio,2)
+        diameter = round(diameter*ratio,2)
         units = _units
 
     end = strftime("%Y-%m-%d %H:%M:%S")
@@ -109,6 +118,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone):
     message_box.append(str(average))
     message_box.append(" StDev: ")
     message_box.append(str(standard_deviation))
+    message_box.append(" ")
+    message_box.append(units)
+    message_box.append(". The diameter of the features: ")
+    message_box.append(str(diameter))
     message_box.append(" ")
     message_box.append(units)
     mb = ''.join(message_box)

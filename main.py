@@ -70,8 +70,6 @@ class MyForm(wx.Frame):
        saved_image_path = ""
        global fileToOpen
        global attributes
-
-
        button_id = event.GetId()
        button_by_id = self.FindWindowById(button_id)
 
@@ -124,7 +122,7 @@ class MyForm(wx.Frame):
            print send_sms_bool
            enter_width = self.enter_units.GetValue()
            #self.update_pbar_live()
-           attributes = attributes
+           #attributes = attributes
            width = self._width.GetValue()
            height = self._height.GetValue()
            units = self._units.GetValue()
