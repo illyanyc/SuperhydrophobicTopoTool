@@ -22,9 +22,9 @@ class MyForm(wx.Frame):
         #self.SetSize((600,200))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        LoadFile_btn = wx.Button(panel, id=wx.ID_ANY, label="Load", name="load")
-        ProcessFile1_btn = wx.Button(panel, id=wx.ID_ANY, label="Identify center/edge", name="process1")
-        ProcessFile2_btn = wx.Button(panel, id=wx.ID_ANY, label="Calculate Relationshps", name="process2")
+        LoadFile_btn = wx.Button(panel, id=wx.ID_ANY, label="1. Load", name="load")
+        ProcessFile1_btn = wx.Button(panel, id=wx.ID_ANY, label="2. Identify center/edge", name="process1")
+        ProcessFile2_btn = wx.Button(panel, id=wx.ID_ANY, label="3. Calculate Relationshps", name="process2")
         #self.Progressbar = wx.Gauge(panel, id=wx.ID_ANY, range=100, style=wx.GA_HORIZONTAL, validator=wx.DefaultValidator, name="Progress...")
         self.enter_units = wx.CheckBox(panel, -1, 'Enter Dimentions', (15, 30))
         lbl1 = wx.StaticText(panel, -1, "Width")
@@ -33,6 +33,8 @@ class MyForm(wx.Frame):
         self._height = wx.TextCtrl(panel, -1, size=(175, -1))
         lbl3 = wx.StaticText(panel, -1, "Units")
         self._units = wx.TextCtrl(panel, -1,  size=(175, -1))
+        lbl4 = wx.StaticText(panel, -1, "Phone Number (+1##########)")
+        self._phone = wx.TextCtrl(panel, -1, size=(175, -1))
         self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
         self.img_overlay_chk =  wx.CheckBox(panel, -1, 'Overlay image', (15, 55))
 
@@ -41,7 +43,7 @@ class MyForm(wx.Frame):
         #LoadFile_btn.Bind(wx.EVT_BUTTON, self.onButton)
         #ProcessFile_btn.Bind(wx.EVT_BUTTON, self.onButton)
 
-        buttons = [LoadFile_btn, ProcessFile1_btn, self.enter_units, lbl1, self._width, lbl2, self._height, lbl3, self._units, self.sms_note_chk, self.img_overlay_chk, ProcessFile2_btn]
+        buttons = [LoadFile_btn, ProcessFile1_btn, self.enter_units, lbl1, self._width, lbl2, self._height, lbl3, self._units, lbl4, self._phone, self.sms_note_chk, self.img_overlay_chk, ProcessFile2_btn]
 
         for button in buttons:
             self.buildButtons(button, sizer)
@@ -126,7 +128,8 @@ class MyForm(wx.Frame):
            width = self._width.GetValue()
            height = self._height.GetValue()
            units = self._units.GetValue()
-           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units)
+           phone = self._phone.GetValue()
+           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone)
            #fr.find_relationships(attributes, fileToOpen)
            #print("Identifying edges")
 

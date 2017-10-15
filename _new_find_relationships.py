@@ -6,7 +6,7 @@ from time import strftime
 from twilio.rest import Client
 import tkMessageBox
 
-def triangulate(array,file,sms,overlay,values,width,height,units):
+def triangulate(array,file,sms,overlay,values,width,height,units,phone):
     #init method
     start = strftime("%Y-%m-%d %H:%M:%S")
     print start
@@ -15,6 +15,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units):
     #bools
     send_sms = sms
     overlay_image = overlay
+    _phone = phone
 
     #enter dimentions
     dimentions_entered = values
@@ -140,7 +141,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units):
         message_to_send = ''.join(message_for_sms)
         print message_for_sms
         message = client.messages.create(
-            to="+13479794471",
+            to=_phone,
             from_="+14155247927",
             body=message_to_send)
         print(message.sid)
