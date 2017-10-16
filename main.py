@@ -13,6 +13,7 @@ class MyForm(wx.Frame):
     #initiate the form
 
 
+
     def __init__(self):
         wx.Frame.__init__(self, None, id=wx.ID_ANY, title="AFM Image Feature Distance - College of Staten Island", size=(300, 500))
         # Panel for frame
