@@ -1,10 +1,14 @@
 from scipy.spatial import Delaunay
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
 import cv2
 from time import strftime
 from twilio.rest import Client
-import tkMessageBox
+import seaborn as sns
+#import tkMessageBox
+from matplotlib.ticker import FormatStrFormatter
 
 def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     #init method
@@ -57,8 +61,14 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         implot = plt.imshow(im)
 
     #plotting points
-    plt.triplot(points[:,0], points[:,1], tri.simplices.copy())
+    plt.triplot(points[:,0], points[:,1], tri.simplices.copy(), color='r')
     plt.plot(points[:, 0], points[:, 1], 'o')
+
+    #get areas as diameter
+    diameters = []
+    for i in areas:
+        d = round(2 * np.sqrt(i * np.pi), 2)
+        diameters.append(d)
 
     #for j, p in enumerate(points):
 
@@ -105,12 +115,26 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     standard_deviation = round(np.std(distances),2)
     units = "pixels"
 
+    _diameters = []
+    _distances = []
+
     if dimentions_entered == True:
         ratio = _width/width
         average = round(average*ratio,2)
         standard_deviation = round(standard_deviation*ratio,2)
         diameter = round(diameter*ratio,2)
         units = _units
+
+        for i in diameters:
+            new_i=round(i*ratio,2)
+            _diameters.append(new_i)
+
+        for i in distances:
+            new_i=round(i*ratio,2)
+            _distances.append(new_i)
+
+
+
 
     end = strftime("%Y-%m-%d %H:%M:%S")
     print end
@@ -129,8 +153,8 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     message_box.append(units)
     mb = ''.join(message_box)
 
-    #print message
-    tkMessageBox.showinfo("Results", mb)
+    print message_box
+    #tkMessageBox.showinfo("Results", mb)
     print "Complete"
 
     # send SMS notification
@@ -164,6 +188,112 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
 
     #show overlayed image
     plt.show()
+
+    #Plots:
+
+    #plotting daimeter distributions
+    #region
+    if dimentions_entered == True:
+        d = _diameters
+    else: d = diameters
+
+    mean_ = []
+    mean_.append("Mean Diameter: ")
+    mean_.append(str(diameter))
+    mean_label = ''.join(mean_)
+    fig, ax = plt.subplots()
+    d_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=20)
+    x_label = "Diameter, "+str(units)
+    plt.xlabel(x_label)
+    plt.ylabel('Count, n')
+    plt.title('Distribution of feature diameters')
+
+    plt.grid(True)
+    # Set the ticks to be at the edges of the bins.
+    ax.set_xticks(bins)
+    # Set the xaxis's tick labels to be formatted with 1 decimal place...
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+
+    # Change the colors of bars at the edges...
+    twentyfifth, seventyfifth = np.percentile(d, [25, 75])
+    for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
+        if rightside < twentyfifth:
+            patch.set_facecolor('green')
+        elif leftside > seventyfifth:
+            patch.set_facecolor('yellow')
+
+    # Label the raw counts and the percentages below the x-axis...
+
+    bin_centers = 0.5 * np.diff(bins) + bins[:-1]
+    for count, x in zip(counts, bin_centers):
+        # Label the raw counts
+        ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
+                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
+
+        # Label the percentages
+        percent = '%0.0f%%' % (100 * float(count) / counts.sum())
+        ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
+                    xytext=(0, 25), textcoords='offset points', va='top', ha='center')
+    plt.axvline(x=diameter, color="red", linestyle='dashed', linewidth=2)
+    plt.text(diameter+1, 10, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
+
+    # Give ourselves some more room at the bottom of the plot
+    plt.subplots_adjust(bottom=0.15)
+    plt.show(d_plot)
+    #endregion
+
+    # plotting distance between the features
+    # region
+    if dimentions_entered == True:
+        d = _distances
+    else: d = distances
+
+    _mean = []
+    _mean.append("Mean Distance: ")
+    _mean.append(str(average))
+    mean_label = ''.join(_mean)
+    fig, ax = plt.subplots()
+    f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=20)
+    x_label = "Distance, " + str(units)
+    plt.xlabel(x_label)
+    plt.ylabel('Count, n')
+    plt.title('Distribution of feature distances')
+
+    plt.grid(True)
+    # Set the ticks to be at the edges of the bins.
+    ax.set_xticks(bins)
+    # Set the xaxis's tick labels to be formatted with 1 decimal place...
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+
+    # Change the colors of bars at the edges...
+    twentyfifth, seventyfifth = np.percentile(d, [25, 75])
+    for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
+        if rightside < twentyfifth:
+            patch.set_facecolor('g')
+        elif leftside > seventyfifth:
+            patch.set_facecolor('yellow')
+    max_y_bin = np.max(bins)
+    # Label the raw counts and the percentages below the x-axis...
+    bin_centers = 0.5 * np.diff(bins) + bins[:-1]
+    for count, x in zip(counts, bin_centers):
+        # Label the raw counts
+        ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
+                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
+
+        # Label the percentages
+        percent = '%0.0f%%' % (100 * float(count) / counts.sum())
+        ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
+                    xytext=(0, 25), textcoords='offset points', va='top', ha='center')
+    plt.axvline(x=diameter, color="red", linestyle='dashed', linewidth=2)
+    plt.text(diameter + 1, max_y_bin/2, mean_label, color='black',
+             bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
+
+    # Give ourselves some more room at the bottom of the plot
+    plt.subplots_adjust(bottom=0.15)
+    plt.show(f_plot)
+    #endregion
+
+
 
 
 
