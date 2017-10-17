@@ -15,7 +15,13 @@ import cv2
 from time import strftime
 from twilio.rest import Client
 from matplotlib.ticker import FormatStrFormatter
+import ctypes
+import pyperclip
+from easygui import msgbox
+import os
+import tkMessageBox
 matplotlib.use('TkAgg')
+
 
 def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     #init method
@@ -154,18 +160,12 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
             new_i=round(i*ratio,2)
             _feature_pitch.append(new_i)
 
-    _distances_minus_variationCoefficient = []
-
-    distance_minus_diameter_ratio = (average_pitch - average_diameter) / average_pitch
-    for i in d:
-        new_i = i * distance_minus_diameter_ratio
-        _distances_minus_variationCoefficient.append(new_i)
     #endregion
 
     #final answer message
     #region
     _box = []
-    _box.append("Average Distance: ")
+    _box.append("Average Pitch: ")
     _box.append(str(average_pitch))
     _box.append(" ")
     _box.append(units)
@@ -180,25 +180,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     end = strftime("%Y-%m-%d %H:%M:%S")
     print end
 
-    #messagebox
-    message_box = []
-    message_box.append("Average Distance: ")
-    message_box.append(str(average_pitch))
-    message_box.append(" StDev: ")
-    message_box.append(str(stdev_pitch))
-    message_box.append(" ")
-    message_box.append(units)
-    message_box.append(". The average_diameter of the features: ")
-    message_box.append(str(average_diameter))
-    message_box.append(" StDev: ")
-    message_box.append(str(stdev_diameter))
-    message_box.append(" ")
-    message_box.append(units)
-    mb = ''.join(message_box)
 
-    print mb
-    #tkMessageBox.showinfo("Results", mb)
-    print "Complete"
     #endregion
 
     #send SMS notification
@@ -351,25 +333,29 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     plt.show(f_plot)
     #endregion
 
-    #plotting distance between features
+    #calculating and plotting distance between features
     # region
     if dimentions_entered == True:
         d = _feature_pitch
     else:
         d = feature_pitch
 
+    _distances_minus_variationCoefficient = []
 
+    distance_minus_diameter_ratio = (average_pitch - average_diameter) / average_pitch
 
-    d = _distances_minus_variationCoefficient
+    for i in d:
+        new_i = i * distance_minus_diameter_ratio
+        _distances_minus_variationCoefficient.append(new_i)
 
-    stdev_distance_minus_variationCoeffecient = round(np.std(_distances_minus_variationCoefficient),2)
-    average_distance_minus_variationCoeffecient = round(np.average(_distances_minus_variationCoefficient),2)
+    stdev_feature_real_distance = round(np.std(_distances_minus_variationCoefficient),2)
+    average_feature_real_distane = round(np.average(_distances_minus_variationCoefficient),2)
 
     _mean = []
     _mean.append("Mean Distance: ")
-    _mean.append(str(average_distance_minus_variationCoeffecient))
+    _mean.append(str(average_feature_real_distane))
     _mean.append(" Stdev: ")
-    _mean.append(str(stdev_distance_minus_variationCoeffecient))
+    _mean.append(str(stdev_feature_real_distance))
     _mean.append(" ")
     _mean.append(str(units))
     mean_label = ''.join(_mean)
@@ -405,7 +391,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         percent = '%0.0f%%' % (100 * float(count) / counts.sum())
         ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
                     xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-    plt.axvline(x=average_distance_minus_variationCoeffecient, color="red", linestyle='dashed', linewidth=2)
+    plt.axvline(x=average_feature_real_distane, color="red", linestyle='dashed', linewidth=2)
     plt.text(0, 0, mean_label, color='black',
              bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
     plt.xticks(rotation=70)
@@ -414,7 +400,18 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     plt.subplots_adjust(bottom=0.15)
     plt.show(f_plot)
     # endregion
+    #result terminal print-out
+    #region
+    # messagebox
 
+    #message box string builder
+    message_box = "Average Pitch: "+str(average_pitch)+" "+units+" StDev: "+str(stdev_pitch)+" "+units+"; Average Distance between Features: "+str(average_feature_real_distane)+" "+units+" StDev: "+str(stdev_feature_real_distance)+" "+units+"; Average diameter of the features: "+str(average_diameter)+" "+units+" StDev: "+str(stdev_diameter)+" "+units
+    mb = message_box
+
+    print mb
+    pyperclip.copy("Pitch,"+str(average_pitch)+","+str(stdev_pitch)+",Distance,"+str(average_feature_real_distane)+","+str(stdev_feature_real_distance)+",Diameter,"+str(average_diameter)+","+str(stdev_diameter)+",Units:"+units)
+    print "Complete"
+    #endregion
 
 
 
