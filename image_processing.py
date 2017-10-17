@@ -1,37 +1,51 @@
+# image_processing.py method is called to perform Delaunay
+# triangulation on the center's of mass; plot lines, calculate lines
+# lenght.
+#
+# The method reult is: Delaunay plot, Distribution of Feature's Widths,
+# Distribution of Feature's Pitch, Distribution of Distance between
+# the features.
+# ----------------------------------------------------------------------
+
 from scipy.spatial import Delaunay
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('TkAgg')
 import cv2
 from time import strftime
 from twilio.rest import Client
 from matplotlib.ticker import FormatStrFormatter
+matplotlib.use('TkAgg')
 
 def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     #init method
+    #region
     start = strftime("%Y-%m-%d %H:%M:%S")
     print start
-    distances = []
-    areas = []
+    feature_pitch = []
+    feature_areas = []
     txt_doc = []
     #bools
     send_sms = sms
     overlay_image = overlay
     _phone = phone
     _tri = tri
+    #endregion
 
-    #enter dimentions
+    #if dimentions are entered: pixel to distance conversion ratio
+    #region
     dimentions_entered = values
     if dimentions_entered == True:
         _width = float(width)
         _height = float(height)
         _units = units
-
+    #endregion
 
     im = plt.imread(file + "_temp.png")
 
-    #image to analyze - need height and width
+
+    #preparing the image file for analysis
+    #region
     image_path = file
     image = cv2.imread(image_path, 0)
     width = image.shape[1]
@@ -45,13 +59,15 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
 
     for b in array:
         area = b[4]
-        areas.append(area)
+        feature_areas.append(area)
 
     #array of points
     attributes = np.array(working_array)
     points = np.array(attributes)
+    # endregion
 
-    #Delaunay magic
+    #Delaunay triangulation
+    #region
     tri = Delaunay(points)
 
     #image overlay prep
@@ -62,15 +78,16 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     plt.triplot(points[:,0], points[:,1], tri.simplices.copy(), color='r')
     plt.plot(points[:, 0], points[:, 1], 'o', color='w')
 
-    #get areas as diameter
-    diameters = []
-    for i in areas:
+    #get areas as average_diameter
+    feature_diameters = []
+    for i in feature_areas:
         d = round(2 * np.sqrt(i / np.pi), 2)
-        diameters.append(d)
+        feature_diameters.append(d)
+    # for j, p in enumerate(points):
+    #endregion
 
-    #for j, p in enumerate(points):
-
-    #main calc loop
+    #plot points, calculate distances between points
+    #region
     for j, s in enumerate(tri.simplices):
         p = points[s].mean(axis=0)
 
@@ -107,41 +124,53 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
             distance = np.sqrt(sum_x_y)
             print "distance: ",distance
 
-            distances.append(distance)
+            feature_pitch.append(distance)
+    #endregion
 
-    # final answer
-    areas_avg =np.average(areas)
-    diameter = np.average(diameters)
-    average = round(np.average(distances),2)
-    standard_deviation = round(np.std(distances),2)
-    stdev_diameter=round(np.std(diameters))
+    #final answer
+    #region
+    areas_avg =np.average(feature_areas)
+    average_diameter = np.average(feature_diameters)
+    average_pitch = round(np.average(feature_pitch),2)
+    stdev_pitch = round(np.std(feature_pitch),2)
+    stdev_diameter=round(np.std(feature_diameters))
     units = "pixels"
 
-    _diameters = []
-    _distances = []
+    _feature_diameters = []
+    _feature_pitch = []
 
     if dimentions_entered == True:
         ratio = _width/width
-        average = round(average*ratio,2)
-        standard_deviation = round(standard_deviation*ratio,2)
-        diameter = round(diameter*ratio,2)
+        average_pitch = round(average_pitch*ratio,2)
+        stdev_pitch = round(stdev_pitch*ratio,2)
+        average_diameter = round(average_diameter*ratio,2)
         units = _units
 
-        for i in diameters:
+        for i in feature_diameters:
             new_i=round(i*ratio,2)
-            _diameters.append(new_i)
+            _feature_diameters.append(new_i)
 
-        for i in distances:
+        for i in feature_pitch:
             new_i=round(i*ratio,2)
-            _distances.append(new_i)
+            _feature_pitch.append(new_i)
 
+    _distances_minus_variationCoefficient = []
+
+    distance_minus_diameter_ratio = (average_pitch - average_diameter) / average_pitch
+    for i in d:
+        new_i = i * distance_minus_diameter_ratio
+        _distances_minus_variationCoefficient.append(new_i)
+    #endregion
+
+    #final answer message
+    #region
     _box = []
     _box.append("Average Distance: ")
-    _box.append(str(average))
+    _box.append(str(average_pitch))
     _box.append(" ")
     _box.append(units)
     _box.append(" StDev: ")
-    _box.append(str(standard_deviation))
+    _box.append(str(stdev_pitch))
     _box.append(" ")
     _box.append(units)
     t_box = ''.join(_box)
@@ -151,17 +180,16 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     end = strftime("%Y-%m-%d %H:%M:%S")
     print end
 
-
     #messagebox
     message_box = []
     message_box.append("Average Distance: ")
-    message_box.append(str(average))
+    message_box.append(str(average_pitch))
     message_box.append(" StDev: ")
-    message_box.append(str(standard_deviation))
+    message_box.append(str(stdev_pitch))
     message_box.append(" ")
     message_box.append(units)
-    message_box.append(". The diameter of the features: ")
-    message_box.append(str(diameter))
+    message_box.append(". The average_diameter of the features: ")
+    message_box.append(str(average_diameter))
     message_box.append(" StDev: ")
     message_box.append(str(stdev_diameter))
     message_box.append(" ")
@@ -171,8 +199,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     print mb
     #tkMessageBox.showinfo("Results", mb)
     print "Complete"
+    #endregion
 
-    # send SMS notification
+    #send SMS notification
+    #region
     work = False
 
     if send_sms == True:
@@ -180,10 +210,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         auth_token = "ec8bc7c76b8871bd7d80349c32e045a3"
         client = Client(account_sid, auth_token)
         message_for_sms = []
-        message_for_sms.append("AFM Calculation complete! , the average distance between the features is:")
-        message_for_sms.append(str(int(average)))
+        message_for_sms.append("AFM Calculation complete! , the average_distance distance between the features is:")
+        message_for_sms.append(str(int(average_pitch)))
         message_for_sms.append(" +/ ")
-        message_for_sms.append(str(standard_deviation))
+        message_for_sms.append(str(stdev_pitch))
         message_for_sms.append(" ")
         message_for_sms.append(units)
         message_for_sms.append(" The calculation started at: ")
@@ -200,21 +230,24 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
             from_="+14155247927",
             body=message_to_send)
         print(message.sid)
+    #endregion
 
     #show overlayed image
     plt.show()
 
+
     #Plots:
+
 
     #plotting daimeter distributions
     #region
     if dimentions_entered == True:
-        d = _diameters
-    else: d = diameters
+        d = _feature_diameters
+    else: d = feature_diameters
 
     mean_ = []
     mean_.append("Mean Diameter: ")
-    mean_.append(str(diameter))
+    mean_.append(str(average_diameter))
     mean_.append(" Stdev: ")
     mean_.append(str(stdev_diameter))
     mean_.append(" ")
@@ -253,7 +286,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         percent = '%0.0f%%' % (100 * float(count) / counts.sum())
         ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
                     xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-    plt.axvline(x=diameter, color="red", linestyle='dashed', linewidth=2)
+    plt.axvline(x=average_diameter, color="red", linestyle='dashed', linewidth=2)
     plt.text(0, 0, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
     plt.xticks(rotation=70)
 
@@ -262,26 +295,26 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     plt.show(d_plot)
     #endregion
 
-    # plotting distance between the features
+    #plotting feature's pitch
     # region
     if dimentions_entered == True:
-        d = _distances
-    else: d = distances
+        d = _feature_pitch
+    else: d = feature_pitch
 
     _mean = []
-    _mean.append("Mean Distance: ")
-    _mean.append(str(average))
+    _mean.append("Mean Pitch: ")
+    _mean.append(str(average_pitch))
     _mean.append(" Stdev: ")
-    _mean.append(str(standard_deviation))
+    _mean.append(str(stdev_pitch))
     _mean.append(" ")
     _mean.append(str(units))
     mean_label = ''.join(_mean)
     fig, ax = plt.subplots()
     f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=20)
-    x_label = "Distance, " + str(units)
+    x_label = "Pitch, " + str(units)
     plt.xlabel(x_label)
     plt.ylabel('Count, n')
-    plt.title('Distribution of feature distances')
+    plt.title('Distribution of feature pitch')
 
     plt.grid(True)
     # Set the ticks to be at the edges of the bins.
@@ -308,7 +341,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         percent = '%0.0f%%' % (100 * float(count) / counts.sum())
         ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
                     xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-    plt.axvline(x=diameter, color="red", linestyle='dashed', linewidth=2)
+    plt.axvline(x=average_pitch, color="red", linestyle='dashed', linewidth=2)
     plt.text(0, 0, mean_label, color='black',
              bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
     plt.xticks(rotation=70)
@@ -317,6 +350,70 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     plt.subplots_adjust(bottom=0.15)
     plt.show(f_plot)
     #endregion
+
+    #plotting distance between features
+    # region
+    if dimentions_entered == True:
+        d = _feature_pitch
+    else:
+        d = feature_pitch
+
+
+
+    d = _distances_minus_variationCoefficient
+
+    stdev_distance_minus_variationCoeffecient = round(np.std(_distances_minus_variationCoefficient),2)
+    average_distance_minus_variationCoeffecient = round(np.average(_distances_minus_variationCoefficient),2)
+
+    _mean = []
+    _mean.append("Mean Distance: ")
+    _mean.append(str(average_distance_minus_variationCoeffecient))
+    _mean.append(" Stdev: ")
+    _mean.append(str(stdev_distance_minus_variationCoeffecient))
+    _mean.append(" ")
+    _mean.append(str(units))
+    mean_label = ''.join(_mean)
+    fig, ax = plt.subplots()
+    f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=20)
+    x_label = "Distance, " + str(units)
+    plt.xlabel(x_label)
+    plt.ylabel('Count, n')
+    plt.title('Distribution of distance between features')
+
+    plt.grid(True)
+    # Set the ticks to be at the edges of the bins.
+    ax.set_xticks(bins)
+    # Set the xaxis's tick labels to be formatted with 1 decimal place...
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%0.1f'))
+
+    # Change the colors of bars at the edges...
+    twentyfifth, seventyfifth = np.percentile(d, [25, 75])
+    for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
+        if rightside < twentyfifth:
+            patch.set_facecolor('g')
+        elif leftside > seventyfifth:
+            patch.set_facecolor('yellow')
+    max_y_bin = np.max(bins)
+    # Label the raw counts and the percentages below the x-axis...
+    bin_centers = 0.5 * np.diff(bins) + bins[:-1]
+    for count, x in zip(counts, bin_centers):
+        # Label the raw counts
+        ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
+                    xytext=(0, 65), textcoords='offset points', va='top', ha='center')
+
+        # Label the percentages
+        percent = '%0.0f%%' % (100 * float(count) / counts.sum())
+        ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
+                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
+    plt.axvline(x=average_distance_minus_variationCoeffecient, color="red", linestyle='dashed', linewidth=2)
+    plt.text(0, 0, mean_label, color='black',
+             bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
+    plt.xticks(rotation=70)
+
+    # Give ourselves some more room at the bottom of the plot
+    plt.subplots_adjust(bottom=0.15)
+    plt.show(f_plot)
+    # endregion
 
 
 

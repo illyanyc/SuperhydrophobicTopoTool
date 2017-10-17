@@ -1,3 +1,11 @@
+# load_and_find_centers.py method is called to perform feature boundary
+# calculation, trace the boundary around the feature, find center of mass,
+# produce boundary traced image
+#
+# The method reult is: Boundary Tranced Image, Center of Mass Coordinated
+# as an array
+# ----------------------------------------------------------------------
+
 import imutils
 import cv2
 
@@ -10,11 +18,9 @@ def process_image(img_path):
     thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY)[1]
     contours = cv2.findContours(thresh,1,2)
 
-
-    # find contours in the thresholded image
+    #find contours in the thresholded image
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-
 
     global i
     i=0
@@ -34,17 +40,11 @@ def process_image(img_path):
             coordinates = [i, cX, cY, moments, area]
             attributes.append(coordinates)
         except:
-            print "no attribute"
+            print "No attribute"
 
         # draw the contour and center of the shape on the image
         cv2.drawContours(image, [c], -1, (0, 255, 0), 1)
         cv2.circle(image, (cX, cY), 2, (71, 99, 255), -1)
-        # cv2.putText(image, "center", (cX - 20, cY - 20),
-        # cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        # show the image
-        #cv2.imshow("Image", image)
-
-        # cv2.waitKey(0)
 
     count_of_features = len(attributes)
     print "Count of features: ",count_of_features
