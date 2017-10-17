@@ -50,6 +50,8 @@ def process_image(img_path):
 
         # cv2.waitKey(0)
 
+    count_of_features = len(attributes)
+    print "Count of features: ",count_of_features
 
     cv2.imwrite(image_path + "_temp.png", image)
     return attributes

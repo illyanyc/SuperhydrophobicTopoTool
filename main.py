@@ -34,9 +34,9 @@ class MyForm(wx.Frame):
         self._height = wx.TextCtrl(panel, -1, size=(175, -1))
         lbl3 = wx.StaticText(panel, -1, "Units")
         self._units = wx.TextCtrl(panel, -1,  size=(175, -1))
-        lbl4 = wx.StaticText(panel, -1, "Phone Number (+1##########)")
-        self._phone = wx.TextCtrl(panel, -1, size=(175, -1))
-        self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
+        #lbl4 = wx.StaticText(panel, -1, "Phone Number (+1##########)")
+        #self._phone = wx.TextCtrl(panel, -1, size=(175, -1))
+        #self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
         self.img_overlay_chk =  wx.CheckBox(panel, -1, 'Overlay image', (15, 55))
         self.num_tri = wx.CheckBox(panel, -1, 'Number triangles', (15, 55))
 
@@ -45,7 +45,7 @@ class MyForm(wx.Frame):
         #LoadFile_btn.Bind(wx.EVT_BUTTON, self.onButton)
         #ProcessFile_btn.Bind(wx.EVT_BUTTON, self.onButton)
 
-        buttons = [LoadFile_btn, ProcessFile1_btn, self.enter_units, lbl1, self._width, lbl2, self._height, lbl3, self._units, lbl4, self._phone, self.sms_note_chk, self.img_overlay_chk, self.num_tri, ProcessFile2_btn]
+        buttons = [LoadFile_btn, ProcessFile1_btn, self.enter_units, lbl1, self._width, lbl2, self._height, lbl3, self._units, self.img_overlay_chk, self.num_tri, ProcessFile2_btn]
 
         for button in buttons:
             self.buildButtons(button, sizer)
@@ -57,7 +57,6 @@ class MyForm(wx.Frame):
     def buildButtons(self, btn, sizer):
         btn.Bind(wx.EVT_BUTTON, self.onButton)
         sizer.Add(btn, 0, wx.ALL, 5)
-
 
 
     # ----------------------------------------------------------------------
@@ -110,6 +109,7 @@ class MyForm(wx.Frame):
            saved_image_path = file_path + "_temp.png"
 
            bitmap = wx.Bitmap(saved_image_path)
+
            w, h = bitmap.GetSize()
            control = wx.StaticBitmap(self, -1, bitmap)
            control.SetPosition((200, 10))
@@ -120,7 +120,7 @@ class MyForm(wx.Frame):
        if buttonPressed == "process2":
            img_overlay_bool = self.img_overlay_chk.GetValue()
            print img_overlay_bool
-           send_sms_bool = self.sms_note_chk.GetValue()
+           send_sms_bool = False
            print send_sms_bool
            enter_width = self.enter_units.GetValue()
            #self.update_pbar_live()
@@ -128,7 +128,7 @@ class MyForm(wx.Frame):
            width = self._width.GetValue()
            height = self._height.GetValue()
            units = self._units.GetValue()
-           phone = self._phone.GetValue()
+           phone = ""
            tri = self.num_tri.GetValue()
            nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone,tri)
            #fr.find_relationships(attributes, fileToOpen)

@@ -6,8 +6,6 @@ matplotlib.use('TkAgg')
 import cv2
 from time import strftime
 from twilio.rest import Client
-import seaborn as sns
-#import tkMessageBox
 from matplotlib.ticker import FormatStrFormatter
 
 def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
@@ -16,7 +14,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     print start
     distances = []
     areas = []
-
+    txt_doc = []
     #bools
     send_sms = sms
     overlay_image = overlay
@@ -62,12 +60,12 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
 
     #plotting points
     plt.triplot(points[:,0], points[:,1], tri.simplices.copy(), color='r')
-    plt.plot(points[:, 0], points[:, 1], 'o')
+    plt.plot(points[:, 0], points[:, 1], 'o', color='w')
 
     #get areas as diameter
     diameters = []
     for i in areas:
-        d = round(2 * np.sqrt(i * np.pi), 2)
+        d = round(2 * np.sqrt(i / np.pi), 2)
         diameters.append(d)
 
     #for j, p in enumerate(points):
@@ -78,6 +76,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
 
         if _tri == True:
             plt.text(p[0], p[1], '#%d' % j, ha='center') # label triangles
+
         plt.xlim(0, width);
         plt.ylim(0, height)
 
@@ -85,6 +84,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         s = tri.simplices[i,:]
         p_arr = points[tri.simplices[i,:]]
         print "simplex: ",s," at: ",i
+
         verteces = [[0,1],[0,2],[1,2]]
 
         for v in verteces:
@@ -106,13 +106,15 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
             sum_x_y = x_squared + y_squared
             distance = np.sqrt(sum_x_y)
             print "distance: ",distance
+
             distances.append(distance)
 
     # final answer
     areas_avg =np.average(areas)
-    diameter = round(2*np.sqrt(areas_avg*np.pi),2)
+    diameter = np.average(diameters)
     average = round(np.average(distances),2)
     standard_deviation = round(np.std(distances),2)
+    stdev_diameter=round(np.std(diameters))
     units = "pixels"
 
     _diameters = []
@@ -133,11 +135,22 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
             new_i=round(i*ratio,2)
             _distances.append(new_i)
 
-
-
+    _box = []
+    _box.append("Average Distance: ")
+    _box.append(str(average))
+    _box.append(" ")
+    _box.append(units)
+    _box.append(" StDev: ")
+    _box.append(str(standard_deviation))
+    _box.append(" ")
+    _box.append(units)
+    t_box = ''.join(_box)
+    plt.text(50,50, t_box, color='black',
+             bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
 
     end = strftime("%Y-%m-%d %H:%M:%S")
     print end
+
 
     #messagebox
     message_box = []
@@ -149,11 +162,13 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     message_box.append(units)
     message_box.append(". The diameter of the features: ")
     message_box.append(str(diameter))
+    message_box.append(" StDev: ")
+    message_box.append(str(stdev_diameter))
     message_box.append(" ")
     message_box.append(units)
     mb = ''.join(message_box)
 
-    print message_box
+    print mb
     #tkMessageBox.showinfo("Results", mb)
     print "Complete"
 
@@ -200,6 +215,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     mean_ = []
     mean_.append("Mean Diameter: ")
     mean_.append(str(diameter))
+    mean_.append(" Stdev: ")
+    mean_.append(str(stdev_diameter))
+    mean_.append(" ")
+    mean_.append(str(units))
     mean_label = ''.join(mean_)
     fig, ax = plt.subplots()
     d_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=20)
@@ -228,14 +247,15 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     for count, x in zip(counts, bin_centers):
         # Label the raw counts
         ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
+                    xytext=(0, 65), textcoords='offset points', va='top', ha='center')
 
         # Label the percentages
         percent = '%0.0f%%' % (100 * float(count) / counts.sum())
         ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
-                    xytext=(0, 25), textcoords='offset points', va='top', ha='center')
+                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
     plt.axvline(x=diameter, color="red", linestyle='dashed', linewidth=2)
-    plt.text(diameter+1, 10, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
+    plt.text(0, 0, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
+    plt.xticks(rotation=70)
 
     # Give ourselves some more room at the bottom of the plot
     plt.subplots_adjust(bottom=0.15)
@@ -251,6 +271,10 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     _mean = []
     _mean.append("Mean Distance: ")
     _mean.append(str(average))
+    _mean.append(" Stdev: ")
+    _mean.append(str(standard_deviation))
+    _mean.append(" ")
+    _mean.append(str(units))
     mean_label = ''.join(_mean)
     fig, ax = plt.subplots()
     f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=20)
@@ -278,20 +302,22 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     for count, x in zip(counts, bin_centers):
         # Label the raw counts
         ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
+                    xytext=(0, 65), textcoords='offset points', va='top', ha='center')
 
         # Label the percentages
         percent = '%0.0f%%' % (100 * float(count) / counts.sum())
         ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
-                    xytext=(0, 25), textcoords='offset points', va='top', ha='center')
+                    xytext=(0, 45), textcoords='offset points', va='top', ha='center')
     plt.axvline(x=diameter, color="red", linestyle='dashed', linewidth=2)
-    plt.text(diameter + 1, max_y_bin/2, mean_label, color='black',
+    plt.text(0, 0, mean_label, color='black',
              bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
+    plt.xticks(rotation=70)
 
     # Give ourselves some more room at the bottom of the plot
     plt.subplots_adjust(bottom=0.15)
     plt.show(f_plot)
     #endregion
+
 
 
 
