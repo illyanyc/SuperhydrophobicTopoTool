@@ -1,9 +1,5 @@
-
-# import the necessary packages
-import argparse
 import imutils
 import cv2
-import numpy
 
 def process_image(img_path):
     attributes = []

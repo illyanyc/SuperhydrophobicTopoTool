@@ -1,18 +1,14 @@
+# AFM_Image_Calculator by Illya Nayshevsky
+# College of Staten Island, CUNY
+# illya.nayshevsky@csi.cuny.edu
+# ----------------------------------------
 import os
-import numpy
 import wx
-from PIL import Image as im
-import cv2
-import imutils
 import convert_to_png
 import load_and_find_centers as lafc
-import find_relationships as fr
 import _new_find_relationships as nfr
-
 class MyForm(wx.Frame):
     #initiate the form
-
-
 
     def __init__(self):
         wx.Frame.__init__(self, None, id=wx.ID_ANY, title="AFM Image Feature Distance - College of Staten Island", size=(300, 500))
@@ -51,20 +47,17 @@ class MyForm(wx.Frame):
             self.buildButtons(button, sizer)
 
         panel.SetSizer(sizer)
-
     # ----------------------------------------------------------------------
     #define and arrange buttons
     def buildButtons(self, btn, sizer):
         btn.Bind(wx.EVT_BUTTON, self.onButton)
         sizer.Add(btn, 0, wx.ALL, 5)
 
-
     # ----------------------------------------------------------------------
 
     #global param for file name
     global fileToOpen
     global attributes
-
     #button methods
     def onButton(self, event):
        # Create open file dialog
@@ -115,6 +108,7 @@ class MyForm(wx.Frame):
            control.SetPosition((200, 10))
            w = w + 200
            h = h + 40
+
            #print attributes
 
        if buttonPressed == "process2":
