@@ -17,18 +17,31 @@ from twilio.rest import Client
 from matplotlib.ticker import FormatStrFormatter
 import ctypes
 import pyperclip
+from operator import itemgetter
 from easygui import msgbox
 import os
 import tkMessageBox
 matplotlib.use('TkAgg')
 
+def isBetween(a, b, c):
+    crossproduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y)
+    if abs(crossproduct) != 0 : return False   # (or != 0 if using integers)
 
-def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
+    dotproduct = (c.x - a.x) * (b.x - a.x) + (c.y - a.y)*(b.y - a.y)
+    if dotproduct < 0 : return False
+
+    squaredlengthba = (b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y)
+    if dotproduct > squaredlengthba: return False
+
+    return True
+
+def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri,circle_coutours):
     #init method
     #region
     start = strftime("%Y-%m-%d %H:%M:%S")
     print start
     feature_pitch = []
+    feature_distance = []
     feature_areas = []
     txt_doc = []
     #bools
@@ -48,7 +61,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
     #endregion
 
     im = plt.imread(file + "_temp.png")
-
+    countours=circle_coutours
 
     #preparing the image file for analysis
     #region
@@ -103,6 +116,8 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
         plt.xlim(0, width);
         plt.ylim(0, height)
 
+        verteces_and_closest_point = []
+
     for i,s in enumerate(tri.simplices):
         s = tri.simplices[i,:]
         p_arr = points[tri.simplices[i,:]]
@@ -127,10 +142,74 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri):
             x_squared = abs_diff_x ** 2
             y_squared = abs_diff_y ** 2
             sum_x_y = x_squared + y_squared
-            distance = np.sqrt(sum_x_y)
-            print "distance: ",distance
+            pitch = np.sqrt(sum_x_y)
+            print "pitch: ",pitch
 
-            feature_pitch.append(distance)
+            feature_pitch.append(pitch)
+
+
+
+            #for points x1 and x2
+            if 0==0:
+
+                temp_brothers_1 = []
+                temp_brothers_2 = []
+                for i in countours:
+
+                    for j in i:
+                        c=j[0]
+                        cX = c[0]
+                        cY = c[1]
+                        _cX = cX-x1
+                        temp_brother_x = np.abs(_cX)
+                        _cY = cY - y1
+                        temp_brother_y = np.abs(_cY)
+                        temp_brother_sum = temp_brother_x+temp_brother_y
+
+                        temp_brothers_1.append([temp_brother_sum,temp_brother_x,temp_brother_y])
+
+
+                    for j in i:
+                        c = j[0]
+                        cX = c[0]
+                        cY = c[1]
+                        _cX = cX - x2
+                        temp_brother_x = np.abs(_cX)
+                        _cY = cY - y2
+                        temp_brother_y = np.abs(_cY)
+                        temp_brother_sum = temp_brother_x + temp_brother_y
+
+                        temp_brothers_2.append([temp_brother_sum, temp_brother_x, temp_brother_y])
+
+                dtype = [('b_sum',float),('b_x',float),('b_y',float)]
+
+                closest_brother_1_sorted = np.sort(temp_brothers_1)
+                closes_brother_1_min = closest_brother_1_sorted[0]
+                closest_brother_2_sorted = np.sort(temp_brothers_2)
+                closes_brother_2_min = closest_brother_2_sorted[0]
+
+
+                b_x1 = closes_brother_1_min[1]
+                b_y1 = closes_brother_1_min[2]
+                b_x2 = closes_brother_2_min[1]
+                b_y2 = closes_brother_2_min[2]
+
+
+                b_diff_x = b_x2 - b_x1
+                b_diff_y = b_y2 - b_y1
+
+                # print diff_x,diff_y
+                b_abs_diff_x = np.abs(b_diff_x)
+                b_abs_diff_y = np.abs(b_diff_y)
+                b_x_squared = b_abs_diff_x ** 2
+                b_y_squared = b_abs_diff_y ** 2
+                b_sum_x_y = b_x_squared + b_y_squared
+                _distance = np.sqrt(b_sum_x_y)
+                print "distance: ", _distance
+                print " "
+
+
+
     #endregion
 
     #final answer

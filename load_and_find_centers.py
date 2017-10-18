@@ -11,6 +11,8 @@ import cv2
 
 def process_image(img_path):
     attributes = []
+    circle_coutours= []
+
     image_path = img_path
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -35,6 +37,8 @@ def process_image(img_path):
 
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
+        print c
+        circle_coutours.append(c)
 
         try:
             coordinates = [i, cX, cY, moments, area]
@@ -50,4 +54,4 @@ def process_image(img_path):
     print "Count of features: ",count_of_features
 
     cv2.imwrite(image_path + "_temp.png", image)
-    return attributes
+    return attributes,circle_coutours

@@ -63,6 +63,7 @@ class MyForm(wx.Frame):
     #global params for file name
     global fileToOpen
     global attributes
+    global circle_coutours
 
     #method excecuted when any button is pressed
     def onButton(self, event):
@@ -71,6 +72,7 @@ class MyForm(wx.Frame):
        #region
        global fileToOpen
        global attributes
+       global circle_coutours
        button_id = event.GetId()
        button_by_id = self.FindWindowById(button_id)
         #endregion
@@ -109,7 +111,7 @@ class MyForm(wx.Frame):
            #print("Process")
            file_path = fileToOpen
 
-           attributes = lafc.process_image(file_path)
+           attributes,circle_coutours = lafc.process_image(file_path)
 
            saved_image_path = file_path + "_temp.png"
 
@@ -132,12 +134,13 @@ class MyForm(wx.Frame):
            enter_width = self.enter_units.GetValue()
            #self.update_pbar_live()
            attributes = attributes
+           circle_coutours=circle_coutours
            width = self._width.GetValue()
            height = self._height.GetValue()
            units = self._units.GetValue()
            phone = ""
            tri = self.num_tri.GetValue()
-           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone,tri)
+           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone,tri,circle_coutours)
 
 # Run the program
 if __name__ == "__main__":
