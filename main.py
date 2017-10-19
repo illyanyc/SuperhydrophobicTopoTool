@@ -22,7 +22,7 @@ class MyForm(wx.Frame):
         self.SetBackgroundColour('gray')
         panel = wx.Panel(self, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        LoadFile_btn = wx.Button(panel, id=wx.ID_ANY, label="1. Load", name="load")
+        LoadFile_btn = wx.Button(panel, id=wx.ID_ANY, label="1. Load Image", name="load")
         #endregion
 
         #create buttons and other UI items
@@ -42,7 +42,8 @@ class MyForm(wx.Frame):
         #self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
         self.img_overlay_chk =  wx.CheckBox(panel, -1, 'Overlay image', (15, 55))
         self.num_tri = wx.CheckBox(panel, -1, 'Number triangles', (15, 55))
-        lbl5 = wx.StaticText(panel, -1, "Max and Min Elevation")
+        lbl5 = wx.StaticText(panel, -1, "Max Elevation")
+        lbl5_1 = wx.StaticText(panel, -1, "Min Elevation")
         self._max = wx.TextCtrl(panel, -1, size=(175, -1))
         self._min = wx.TextCtrl(panel, -1, size=(175, -1))
         lbl6 = wx.StaticText(panel, -1, "Units")
@@ -63,7 +64,7 @@ class MyForm(wx.Frame):
 
         #apply sizer to align the buttons and other UI items vertically on the left of the screen
         #region
-        buttons = [LoadFile_btn,lbl5, self._max, self._min, lbl6, self.elev_unit, lbl7, self.ca, self.elev, ProcessFile1_btn, lbl1, self._width, lbl2, self._height, lbl3, self._units, self.img_overlay_chk, self.num_tri, self.wet,lbl8, self.diameter_plot,self.pitch_plot, self.distance_plot, self.height_plot, ProcessFile2_btn]
+        buttons = [LoadFile_btn,lbl5, self._max, lbl5_1, self._min, lbl6, self.elev_unit, lbl7, self.ca, self.elev, ProcessFile1_btn, lbl1, self._width, lbl2, self._height, lbl3, self._units, self.img_overlay_chk, self.num_tri, self.wet,lbl8, self.diameter_plot,self.pitch_plot, self.distance_plot, self.height_plot, ProcessFile2_btn]
         for button in buttons:
             self.buildButtons(button, sizer)
         #endregion
