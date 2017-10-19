@@ -21,19 +21,10 @@ from operator import itemgetter
 from easygui import msgbox
 import os
 import tkMessageBox
+from shapely.geometry import LineString, Point, LinearRing, Polygon
+from shapely import geometry
 matplotlib.use('TkAgg')
 
-def isBetween(a, b, c):
-    crossproduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y)
-    if abs(crossproduct) != 0 : return False   # (or != 0 if using integers)
-
-    dotproduct = (c.x - a.x) * (b.x - a.x) + (c.y - a.y)*(b.y - a.y)
-    if dotproduct < 0 : return False
-
-    squaredlengthba = (b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y)
-    if dotproduct > squaredlengthba: return False
-
-    return True
 
 def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri,circle_coutours):
     #init method
@@ -97,6 +88,7 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri,circl
     plt.triplot(points[:,0], points[:,1], tri.simplices.copy(), color='r')
     plt.plot(points[:, 0], points[:, 1], 'o', color='w')
 
+
     #get areas as average_diameter
     feature_diameters = []
     for i in feature_areas:
@@ -125,6 +117,11 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri,circl
 
         verteces = [[0,1],[0,2],[1,2]]
 
+        poly = geometry.Polygon([[p[0], p[1]] for p in p_arr])
+        print(poly.wkt)
+
+
+        Polygon([(1, 1), (2, 3), (3, 1)])
         for v in verteces:
             xy1=p_arr[v[0]]
             xy2=p_arr[v[1]]
@@ -146,68 +143,6 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri,circl
             print "pitch: ",pitch
 
             feature_pitch.append(pitch)
-
-
-
-            #for points x1 and x2
-            if 0==0:
-
-                temp_brothers_1 = []
-                temp_brothers_2 = []
-                for i in countours:
-
-                    for j in i:
-                        c=j[0]
-                        cX = c[0]
-                        cY = c[1]
-                        _cX = cX-x1
-                        temp_brother_x = np.abs(_cX)
-                        _cY = cY - y1
-                        temp_brother_y = np.abs(_cY)
-                        temp_brother_sum = temp_brother_x+temp_brother_y
-
-                        temp_brothers_1.append([temp_brother_sum,temp_brother_x,temp_brother_y])
-
-
-                    for j in i:
-                        c = j[0]
-                        cX = c[0]
-                        cY = c[1]
-                        _cX = cX - x2
-                        temp_brother_x = np.abs(_cX)
-                        _cY = cY - y2
-                        temp_brother_y = np.abs(_cY)
-                        temp_brother_sum = temp_brother_x + temp_brother_y
-
-                        temp_brothers_2.append([temp_brother_sum, temp_brother_x, temp_brother_y])
-
-                dtype = [('b_sum',float),('b_x',float),('b_y',float)]
-
-                closest_brother_1_sorted = np.sort(temp_brothers_1)
-                closes_brother_1_min = closest_brother_1_sorted[0]
-                closest_brother_2_sorted = np.sort(temp_brothers_2)
-                closes_brother_2_min = closest_brother_2_sorted[0]
-
-
-                b_x1 = closes_brother_1_min[1]
-                b_y1 = closes_brother_1_min[2]
-                b_x2 = closes_brother_2_min[1]
-                b_y2 = closes_brother_2_min[2]
-
-
-                b_diff_x = b_x2 - b_x1
-                b_diff_y = b_y2 - b_y1
-
-                # print diff_x,diff_y
-                b_abs_diff_x = np.abs(b_diff_x)
-                b_abs_diff_y = np.abs(b_diff_y)
-                b_x_squared = b_abs_diff_x ** 2
-                b_y_squared = b_abs_diff_y ** 2
-                b_sum_x_y = b_x_squared + b_y_squared
-                _distance = np.sqrt(b_sum_x_y)
-                print "distance: ", _distance
-                print " "
-
 
 
     #endregion

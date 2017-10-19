@@ -42,6 +42,9 @@ class MyForm(wx.Frame):
         #self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
         self.img_overlay_chk =  wx.CheckBox(panel, -1, 'Overlay image', (15, 55))
         self.num_tri = wx.CheckBox(panel, -1, 'Number triangles', (15, 55))
+        #lbl3 = wx.StaticText(panel, -1, "Units")
+        #self._height = wx.TextCtrl(panel, -1, size=(175, -1))
+
         #endregion
 
         #apply sizer to align the buttons and other UI items vertically on the left of the screen
