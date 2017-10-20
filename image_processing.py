@@ -16,14 +16,8 @@ from time import strftime
 from twilio.rest import Client
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.patches as patches
-import ctypes
 import pyperclip
-from operator import itemgetter
-from easygui import msgbox
-import os
-import tkMessageBox
-from shapely.geometry import LineString, Point, LinearRing, Polygon
-from shapely import geometry
+import math
 matplotlib.use('TkAgg')
 
 def saggita(ca,height,pitch,surface_tension):
@@ -210,7 +204,13 @@ def triangulate(array,file,sms,overlay,values,width,height,units,phone,tri,circl
             _saggita = saggita(_ca,average_elevation_between_two_points,x_for_saggita,0.0728)
 
             #if _saggita >= average_elevation_between_two_points:
-            wet_scale = average_elevation_between_two_points-_saggita
+            if math.isnan(_saggita) == False:
+                wet_scale = average_elevation_between_two_points-_saggita
+            else:
+                wet_scale = 0
+                _saggita = 0
+
+
             vert_wetted.append(wet_scale)
                 #print "WETTED!"
             print "Saggita: ",_saggita
