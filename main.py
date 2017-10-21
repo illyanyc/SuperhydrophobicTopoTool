@@ -53,7 +53,7 @@ class MyForm(wx.Frame):
         self.wet = wx.CheckBox(panel, -1, 'Calculate Wetting', (15, 55))
         self.elev = wx.CheckBox(panel, -1, 'Display Elevations', (15, 55))
         self.distance_plot = wx.CheckBox(panel, -1, 'Distance Plot', (15, 55))
-        self.height_plot = wx.CheckBox(panel, -1, 'Height Plot - Coming Soon', (15, 55))
+        self.height_plot = wx.CheckBox(panel, -1, 'Height Plot', (15, 55))
         self.pitch_plot = wx.CheckBox(panel, -1, 'Pitch Plot', (15, 55))
         self.diameter_plot = wx.CheckBox(panel, -1, 'Diameter PLot', (15, 55))
         lbl8 = wx.StaticText(panel, -1, "Plot Selection")
@@ -82,7 +82,7 @@ class MyForm(wx.Frame):
     global fileToOpen
     global attributes
     global circle_coutours
-
+    global area_at_half_height
     #method excecuted when any button is pressed
     def onButton(self, event):
 
@@ -91,6 +91,7 @@ class MyForm(wx.Frame):
        global fileToOpen
        global attributes
        global circle_coutours
+       global area_at_half_height
        button_id = event.GetId()
        button_by_id = self.FindWindowById(button_id)
         #endregion

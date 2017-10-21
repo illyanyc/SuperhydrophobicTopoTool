@@ -29,8 +29,6 @@ def process_image(img_path,max,min,units,elev):
     contours = cv2.findContours(thresh,1,2)
 
     #find contours in the thresholded image
-
-
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     cnts = cnts[0] if imutils.is_cv2() else cnts[1]
@@ -52,8 +50,6 @@ def process_image(img_path,max,min,units,elev):
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
 
-
-
         cimg = np.zeros_like(image)
         cv2.drawContours(cimg, [c], -1, color=255, thickness=-1)
 
@@ -74,24 +70,30 @@ def process_image(img_path,max,min,units,elev):
             max = np.max(pixels) * pixel_elev + _min
             #print "Max: ",max,"Avg: ",average
 
+            area_at_half_height_arr = []
+
+            for j in pixels:
+                if j >= average:
+                    area_at_half_height_arr.append(i)
+            area_at_half_height = len(area_at_half_height_arr)
+
             font = cv2.FONT_HERSHEY_PLAIN
 
             if area > 30:
                 # draw the contour and center of the shape on the image
-
                 cv2.circle(image, (cX, cY), 2, (71, 99, 255), -1)
                 if elev == True:
                     cv2.putText(image, str(np.round(max,0)),(cX,cY), font, 1, (200,255,155), 1, cv2.LINE_AA)
                 circle_coutours.append([i, average, stdev, max, cX, cY])
                 try:
-                    coordinates = [i, cX, cY, moments, area]
+                    coordinates = [i, cX, cY, moments, area,area_at_half_height]
                     attributes.append(coordinates)
                 except:
                     print "No attribute"
         except: print ""
         cv2.drawContours(image, [c], -1, (0, 150, 255), 1)
 
-        i = i + 1
+        i = i+1
 
     count_of_features = len(attributes)
     print "Count of features: ",count_of_features
