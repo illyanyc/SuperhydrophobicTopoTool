@@ -14,7 +14,6 @@ def process_image(img_path,max,min,units,elev):
 
     _max=float(max)
     _min=float(min)
-    _units=units
 
     pixel_elev=(_max-_min)/255
 
@@ -30,12 +29,12 @@ def process_image(img_path,max,min,units,elev):
 
     #find contours in the thresholded image
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
     cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 
     global i
     i=0
 
+    #contour detection and feature height calculation
     for c in cnts:
         pixels_temp = []
         pixels = []

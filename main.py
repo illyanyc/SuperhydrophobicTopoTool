@@ -11,6 +11,7 @@ import wx
 import convert_to_png
 import load_and_find_centers as lafc
 import image_processing as nfr
+
 class MyForm(wx.Frame):
     #initiate the form
 
@@ -26,20 +27,15 @@ class MyForm(wx.Frame):
         #endregion
 
         #create buttons and other UI items
-        #region
+#region
         ProcessFile1_btn = wx.Button(panel, id=wx.ID_ANY, label="2. Identify center/edge", name="process1")
         ProcessFile2_btn = wx.Button(panel, id=wx.ID_ANY, label="3. Calculate Relationshps", name="process2")
-        #self.Progressbar = wx.Gauge(panel, id=wx.ID_ANY, range=100, style=wx.GA_HORIZONTAL, validator=wx.DefaultValidator, name="Progress...")
-        #self.enter_units = wx.CheckBox(panel, -1, 'Enter Dimentions', (15, 30))
         lbl1 = wx.StaticText(panel, -1, "Width")
         self._width = wx.TextCtrl(panel, -1, size=(175, -1))
         lbl2 = wx.StaticText(panel, -1, "Height")
         self._height = wx.TextCtrl(panel, -1, size=(175, -1))
         lbl3 = wx.StaticText(panel, -1, "Units")
         self._units = wx.TextCtrl(panel, -1,  size=(175, -1))
-        #lbl4 = wx.StaticText(panel, -1, "Phone Number (+1##########)")
-        #self._phone = wx.TextCtrl(panel, -1, size=(175, -1))
-        #self.sms_note_chk = wx.CheckBox(panel, -1, 'Send notification SMS', (15, 30))
         self.img_overlay_chk =  wx.CheckBox(panel, -1, 'Overlay image', (15, 55))
         self.num_tri = wx.CheckBox(panel, -1, 'Number triangles', (15, 55))
         lbl5 = wx.StaticText(panel, -1, "Max Elevation")
@@ -57,14 +53,17 @@ class MyForm(wx.Frame):
         self.pitch_plot = wx.CheckBox(panel, -1, 'Pitch Plot', (15, 55))
         self.diameter_plot = wx.CheckBox(panel, -1, 'Diameter PLot', (15, 55))
         lbl8 = wx.StaticText(panel, -1, "Plot Selection")
-        #lbl3 = wx.StaticText(panel, -1, "Units")
-        #self._height = wx.TextCtrl(panel, -1, size=(175, -1))
 
         #endregion
 
         #apply sizer to align the buttons and other UI items vertically on the left of the screen
         #region
-        buttons = [LoadFile_btn,lbl5, self._max, lbl5_1, self._min, lbl6, self.elev_unit, lbl7, self.ca, self.elev, ProcessFile1_btn, lbl1, self._width, lbl2, self._height, lbl3, self._units, self.img_overlay_chk, self.num_tri, self.wet,lbl8, self.diameter_plot,self.pitch_plot, self.distance_plot, self.height_plot, ProcessFile2_btn]
+        buttons = [LoadFile_btn,lbl5, self._max, lbl5_1, self._min, lbl6,
+                   self.elev_unit, lbl7, self.ca, self.elev, ProcessFile1_btn, lbl1,
+                   self._width, lbl2, self._height, lbl3, self._units, self.img_overlay_chk,
+                   self.num_tri, self.wet,lbl8, self.diameter_plot,self.pitch_plot, self.distance_plot,
+                   self.height_plot, ProcessFile2_btn]
+
         for button in buttons:
             self.buildButtons(button, sizer)
         #endregion
@@ -92,6 +91,7 @@ class MyForm(wx.Frame):
        global attributes
        global circle_coutours
        global area_at_half_height
+
        button_id = event.GetId()
        button_by_id = self.FindWindowById(button_id)
         #endregion
@@ -132,18 +132,12 @@ class MyForm(wx.Frame):
            elev_unit_1 = self.elev_unit.GetValue()
            #print("Process")
            file_path = fileToOpen
-
            attributes,circle_coutours = lafc.process_image(file_path,max_1,min_1,elev_unit_1,_elev)
-
            saved_image_path = file_path + "_temp.png"
-
            bitmap = wx.Bitmap(saved_image_path)
-
            w, h = bitmap.GetSize()
            control = wx.StaticBitmap(self, -1, bitmap)
            control.SetPosition((200, 10))
-           w = w + 200
-           h = h + 40
 
            #print attributes
 
@@ -168,7 +162,9 @@ class MyForm(wx.Frame):
            _ca = self.ca.GetValue()
            phone = ""
            tri = self.num_tri.GetValue()
-           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,enter_width,width,height,units,phone,tri,circle_coutours,_ca,_wet,_pitch_plot,_height_plot,_distance_plot,_diameter_plot)
+           nfr.triangulate(attributes,fileToOpen,send_sms_bool,img_overlay_bool,
+                           enter_width,width,height,units,phone,tri,circle_coutours,
+                           _ca,_wet,_pitch_plot,_height_plot,_distance_plot,_diameter_plot)
 
 # Run the program
 if __name__ == "__main__":

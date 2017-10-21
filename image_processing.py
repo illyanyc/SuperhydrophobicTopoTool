@@ -6,37 +6,18 @@
 # Distribution of Feature's Pitch, Distribution of Distance between
 # the features.
 # ----------------------------------------------------------------------
-
-from scipy.spatial import Delaunay
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib
-import cv2
-from time import strftime
-from twilio.rest import Client
-from matplotlib.ticker import FormatStrFormatter
 import matplotlib.patches as patches
-import pyperclip
-import math
-from matplotlib.ticker import FormatStrFormatter
+from scipy.spatial import Delaunay
+import sagitta_calculation as sag
+import matplotlib.pyplot as plt
+from twilio.rest import Client
+from time import strftime
+import matplotlib
 matplotlib.use('TkAgg')
-
-#method for calculating the sagitta
-def saggita(ca,height,pitch,surface_tension):
-    _ca=float(ca)
-    _height=float(height)
-    _pitch=float(pitch)
-    _surface_tension=float(surface_tension)
-
-    a1=180.0-_ca
-    a2=180-90-a1
-    b=180-90-a2
-
-    y=np.tan(np.deg2rad(_ca))*(_pitch/2)
-    x=_pitch/2
-    r=np.sqrt((x)**2+(y)**2)
-    s=r-np.sqrt((r)**2-(_pitch)**2)
-    return s
+import numpy as np
+import cv2
+import math
+import plots
 
 def triangulate(attribute_array, file, sms, overlay, values, width, height, units, phone, tri, circle_coutours, ca, _wet, _pitch_plot, _height_plot, _distance_plot, _diameter_plot):
     #init method
@@ -44,12 +25,10 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     start = strftime("%Y-%m-%d %H:%M:%S")
     print start
 
-    #declare arrays and variables for use in calculations
+    #declare arrays and variables and bools for use in calculations
     feature_pitch = []
     feature_distance = []
     feature_areas = []
-    txt_doc = []
-    #bools
     send_sms = sms
     overlay_image = overlay
     _phone = phone
@@ -87,7 +66,6 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     #array of points
     attributes = np.array(working_array)
     points = np.array(attributes)
-
 
     #Delaunay triangulation
     #region
@@ -170,6 +148,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             #plt.text(x1,y1,str(np.round(elevation1,0)))
             print "Average Elevation: ",average_elevation_between_two_points
 
+            #x_axis value
             diff_x = x2-x1
             diff_y = y2-y1
             abs_diff_x = np.abs(diff_x)
@@ -179,8 +158,11 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             sum_x_y = x_squared + y_squared
             x_axis_value = np.sqrt(sum_x_y)
             pitch=x_axis_value
+
+            #y_axis value
             y_axis_value = np.abs(elevation2[0]-elevation1[0])
 
+            #adjust the values for dimentions entered
             if dimentions_entered == True:
                 ratio = _width / width
                 pitch=round(pitch*ratio,2)
@@ -188,18 +170,13 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             if dimentions_entered == True:
                 ratio = _width / width
                 average_diameter = round(average_diameter * ratio, 2)
-
-            new_pitch = np.sqrt((x_axis_value)**2+(y_axis_value)**2)
-
             print "pitch: ",pitch
-                #,"new_pitch: :",new_pitch
 
             sagitta_locations = []
             for b in attribute_array:
                 area = b[4]
                 _cX=b[1]
                 _cY=b[2]
-
                 sagitta_locations.append([area,_cX,_cY])
 
             #get radii for the sagitta calcualtions
@@ -231,7 +208,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             if x_for_saggita  <= 0:
                 x_for_saggita=pitch
 
-            _sagitta = saggita(_ca,average_elevation_between_two_points,x_for_saggita,0.0728)
+            _sagitta = sag.sagitta(_ca, average_elevation_between_two_points, x_for_saggita, 0.0728)
 
             #if _saggita >= average_elevation_between_two_points:
             if math.isnan(_sagitta) == False:
@@ -252,11 +229,8 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             feature_distance.append(calculated_distance)
 
         avg_vert_wetted = np.average(vert_wetted)
-        #print "AVERAGE WETTED!:",avg_vert_wetted
         t_p=np.array(triangle_coords)
         print t_p
-
-        triangle_color=""
 
         #draw triangles for the surface wetting map
         if wet == True:
@@ -277,6 +251,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                 poly = matplotlib.patches.Polygon(t_p,closed=True,color='red',alpha=0.5)
 
                 ax.add_patch(poly)
+
     ax.set_xlim(0, width)
     ax.set_ylim(0, height)
     triangles.show()
@@ -317,16 +292,6 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
 
     #endregion
     #final answer message
-    _box = []
-    _box.append("Average Pitch: ")
-    _box.append(str(average_pitch))
-    _box.append(" ")
-    _box.append(units)
-    _box.append(" StDev: ")
-    _box.append(str(stdev_pitch))
-    _box.append(" ")
-    _box.append(units)
-    t_box = ''.join(_box)
     end = strftime("%Y-%m-%d %H:%M:%S")
     print end
 
@@ -369,280 +334,52 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
         if dimentions_entered == True:
             d = _feature_diameters
         else: d = feature_diameters
-
-        average_diameter = np.average(d)
-        stdev_diameter = np.std(d)
-
-        mean_ = []
-        mean_.append("Mean Diameter: ")
-        mean_.append(str(average_diameter))
-        mean_.append(" Stdev: ")
-        mean_.append(str(stdev_diameter))
-        mean_.append(" ")
-        mean_.append(str(units))
-        mean_label = ''.join(mean_)
-        fig, ax = plt.subplots()
-        d_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=15)
-        x_label = "Diameter, "+str(units)
-        plt.xlabel(x_label,fontsize=15)
-        plt.ylabel('Count, n',fontsize=15)
-        plt.title('Distribution of feature diameters', fontsize=15)
-
-        plt.grid(True)
-        # Set the ticks to be at the edges of the bins.
-        ax.set_xticks(bins)
-        # Set the xaxis's tick labels to be formatted with 1 decimal place...
-        ax.xaxis.set_major_formatter(FormatStrFormatter('%1.0f'))
-
-        # Change the colors of bars at the edges...
-        fiftyfifth, _fiftyfifth = np.percentile(d, [50, 50])
-        for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
-            if rightside < fiftyfifth:
-                patch.set_facecolor('grey')
-            elif leftside > _fiftyfifth:
-                patch.set_facecolor('grey')
-
-        # Label the raw counts and the percentages below the x-axis...
-
-        bin_centers = 0.5 * np.diff(bins) + bins[:-1]
-        for count, x in zip(counts, bin_centers):
-            # Label the raw counts
-            ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                        xytext=(0, 65), textcoords='offset points', va='top', ha='center',rotation=90)
-
-            # Label the percentages
-            #percent = '%1.0f%%' % (100 * float(count) / counts.sum())
-            #ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
-            #           xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-        plt.axvline(x=average_diameter, color="red", linestyle='dashed', linewidth=2)
-        #plt.text(0, 0, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
-        plt.xticks(rotation=70, fontsize=15)
-        plt.yticks(fontsize=15)
-
-        # Give ourselves some more room at the bottom of the plot
-        plt.subplots_adjust(bottom=0.15)
-        plt.show(d_plot)
+        plot_name='Distribution of feature diameters'
+        x_axis='Diameter, '
+        plots.histogram_plot(d,units,plot_name,x_axis)
 
     #plotting feature's pitch
     if _pitch_plot == True:
         if dimentions_entered == True:
             d = _feature_pitch
         else: d = feature_pitch
-
         temp = d
         d = []
-
         for i in temp:
             if i < average_pitch+2.5*stdev_pitch:
                 d.append(i)
-
-        average_pitch = np.average(d)
-        stdev_pitch = np.std(d)
-
-        _mean = []
-        _mean.append("Mean Pitch: ")
-        _mean.append(str(average_pitch))
-        _mean.append(" Stdev: ")
-        _mean.append(str(stdev_pitch))
-        _mean.append(" ")
-        _mean.append(str(units))
-        mean_label = ''.join(_mean)
-        fig, ax = plt.subplots()
-        f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=15)
-        x_label = "Pitch, " + str(units)
-        plt.xlabel(x_label,fontsize=15)
-        plt.ylabel('Count, n',fontsize=15)
-        plt.title('Distribution of feature pitch',fontsize=15)
-
-        plt.grid(True)
-        # Set the ticks to be at the edges of the bins.
-        ax.set_xticks(bins)
-        # Set the xaxis's tick labels to be formatted with 1 decimal place...
-        ax.xaxis.set_major_formatter(FormatStrFormatter('%1.0f'))
-
-        # Change the colors of bars at the edges...
-        fiftyfifth, _fiftyfifth = np.percentile(d, [50, 50])
-        for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
-            if rightside < fiftyfifth:
-                patch.set_facecolor('grey')
-            elif leftside > _fiftyfifth:
-                patch.set_facecolor('grey')
-        max_y_bin = np.max(bins)
-        # Label the raw counts and the percentages below the x-axis...
-        bin_centers = 0.5 * np.diff(bins) + bins[:-1]
-        for count, x in zip(counts, bin_centers):
-            # Label the raw counts
-            ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                        xytext=(0, 65), textcoords='offset points', va='top', ha='center',rotation=90)
-
-            # Label the percentages
-            # percent = '%1.0f%%' % (100 * float(count) / counts.sum())
-            # ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
-            #           xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-        plt.axvline(x=average_pitch, color="red", linestyle='dashed', linewidth=2)
-        #plt.text(0, 0, mean_label, color='black',bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
-        plt.xticks(rotation=70, fontsize=15)
-        plt.yticks(fontsize=15)
-
-        # Give ourselves some more room at the bottom of the plot
-        plt.subplots_adjust(bottom=0.15)
-        plt.show(f_plot)
+        plot_name = 'Distribution of feature pitch'
+        x_axis = 'Pitch, '
+        plots.histogram_plot(d, units, plot_name, x_axis)
 
     #calculating and plotting distance between features
     if _distance_plot == True:
-
         if dimentions_entered == True:
             d = _feature_pitch
         else:
             d = calculated_distance
-
         temp = d
         d = []
-
         for i in temp:
             if i < average_distance + 3 * stdev_distance:
                 d.append(i)
 
-        average_distance = np.average(d)
-        stdev_distance = np.std(d)
-
-        _mean = []
-        _mean.append("Mean Distance: ")
-        _mean.append(str(average_distance))
-        _mean.append(" Stdev: ")
-        _mean.append(str(stdev_distance))
-        _mean.append(" ")
-        _mean.append(str(units))
-        mean_label = ''.join(_mean)
-        fig, ax = plt.subplots()
-        f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=15)
-        x_label = "Distance, " + str(units)
-        plt.xlabel(x_label,fontsize=15)
-        plt.ylabel('Count, n',fontsize=15)
-        plt.title('Distribution of distance between features',fontsize=15)
-
-        plt.grid(True)
-        # Set the ticks to be at the edges of the bins.
-        ax.set_xticks(bins)
-        # Set the xaxis's tick labels to be formatted with 1 decimal place...
-        ax.xaxis.set_major_formatter(FormatStrFormatter('%1.0f'))
-
-        # Change the colors of bars at the edges...
-        fiftyfifth, _fiftyfifth = np.percentile(d, [50, 50])
-        for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
-            if rightside < fiftyfifth:
-                patch.set_facecolor('grey')
-            elif leftside > _fiftyfifth:
-                patch.set_facecolor('grey')
-        max_y_bin = np.max(bins)
-        # Label the raw counts and the percentages below the x-axis...
-        bin_centers = 0.5 * np.diff(bins) + bins[:-1]
-        for count, x in zip(counts, bin_centers):
-            # Label the raw counts
-            ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                        xytext=(0, 65), textcoords='offset points', va='top', ha='center',rotation=90)
-
-            # Label the percentages
-            # percent = '%1.0f%%' % (100 * float(count) / counts.sum())
-            # ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
-            #           xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-        plt.axvline(x=average_distance, color="red", linestyle='dashed', linewidth=2)
-        #plt.text(0, 0, mean_label, color='black',bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
-        plt.xticks(rotation=70, fontsize=15)
-        plt.yticks(fontsize=15)
-
-        # Give ourselves some more room at the bottom of the plot
-        plt.subplots_adjust(bottom=0.15)
-        plt.show(f_plot)
-        #endregion
+        plot_name = 'Distance between the features'
+        x_axis = 'Distance, '
+        plots.histogram_plot(d, units, plot_name, x_axis)
 
     # calculating and plotting distance between features
     if _height_plot == True:
         _countours = countours
-
         d = []
-
         for i in _countours:
             _elev = i[3]
             d.append(_elev)
 
-        stdev_height = round(np.std(d), 2)
-        average_height = round(np.average(d), 2)
+        plot_name = "Distribution of feature's heights"
+        x_axis = 'Height, '
+        plots.histogram_plot(d, units, plot_name, x_axis)
 
-        _mean = []
-        _mean.append("Mean Height: ")
-        _mean.append(str(average_height))
-        _mean.append(" Stdev: ")
-        _mean.append(str(stdev_height))
-        _mean.append(" ")
-        _mean.append(str(units))
-        mean_label = ''.join(_mean)
-        fig, ax = plt.subplots()
-        f_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=15)
-        x_label = "Height, " + str(units)
-        plt.xlabel(x_label,fontsize=15)
-        plt.ylabel('Count, n',fontsize=15)
-        plt.title('Distribution of heights', fontsize= 15)
-
-        plt.grid(True)
-        # Set the ticks to be at the edges of the bins.
-        ax.set_xticks(bins)
-        # Set the xaxis's tick labels to be formatted with 1 decimal place...
-        ax.xaxis.set_major_formatter(FormatStrFormatter('%1.0f'))
-
-        # Change the colors of bars at the edges...
-        fiftyfifth, _fiftyfifth = np.percentile(d, [50, 50])
-        for patch, rightside, leftside in zip(patches, bins[1:], bins[:-1]):
-            if rightside < fiftyfifth:
-                patch.set_facecolor('grey')
-            elif leftside > _fiftyfifth:
-                patch.set_facecolor('grey')
-        max_y_bin = np.max(bins)
-        # Label the raw counts and the percentages below the x-axis...
-        bin_centers = 0.5 * np.diff(bins) + bins[:-1]
-        for count, x in zip(counts, bin_centers):
-            # Label the raw counts
-            ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                        xytext=(0, 65), textcoords='offset points', va='top', ha='center',rotation=90)
-
-            # Label the percentages
-            # percent = '%1.0f%%' % (100 * float(count) / counts.sum())
-            # ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
-            #           xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-        plt.axvline(x=average_height, color="red", linestyle='dashed', linewidth=2)
-        #plt.text(0, 0, mean_label, color='black',bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
-        plt.xticks(rotation=70, fontsize= 15)
-        plt.yticks(fontsize= 15)
-
-        # Give ourselves some more room at the bottom of the plot
-        plt.subplots_adjust(bottom=0.15)
-        plt.show(f_plot)
-
-
-
-        # result terminal print-out
-        # region
-    #messagebox
-
-    #message box string builder
-    try:
-        message_box1 = "Average Pitch: "+str(round(average_pitch,0))+" "+_units+" StDev: "+str(round(stdev_pitch,0))+" "+_units
-        print message_box1
-    except: print ""
-    try:
-        message_box2 ="Average Distance between Features: "+str(round(average_distance,0))+" "+_units+" StDev: "+str(round(stdev_distance,0))+" "+_units
-        print message_box2
-    except: print ""
-    try:
-        message_box3 ="Average diameter of the features: "+str(round(average_diameter,0))+" "+_units+" StDev: "+str(round(stdev_diameter,0))+" "+_units
-        print message_box3
-    except: print ""
-    try:
-        message_box4 ="Average height of the features: "+str(round(average_height,0))+" "+_units+" StDev: "+str(round(stdev_height,0))+" "+_units
-        print message_box4
-    except: print ""
-
-    #pyperclip.copy("Pitch,"+str(average_pitch)+","+str(stdev_pitch)+",Distance,"+str(average_feature_real_distane)+","+str(stdev_feature_real_distance)+",Diameter,"+str(average_diameter)+","+str(stdev_diameter)+",Units:"+_units)
     print "Complete"
         #endregion
 
