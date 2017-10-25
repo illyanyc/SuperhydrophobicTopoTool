@@ -12,21 +12,29 @@ import convert_to_png
 import load_and_find_centers as lafc
 import image_processing as nfr
 
+
 class MyForm(wx.Frame):
     #initiate the form
 
+    global frame_height
+    global frame_width
+
     def __init__(self):
+        global frame_height
+        global frame_width
         #initialize the frame (window) of the application
-        wx.Frame.__init__(self, None, id=wx.ID_ANY, title="AFM Image Feature Distance - College of Staten Island", size=(300, 800))
+        frame_width=200
+        frame_height=800
+        wx.Frame.__init__(self, None, id=wx.ID_ANY, title="AFM Image Feature Distance - College of Staten Island", size=(frame_width, frame_height))
 
         # Panel for frame
-        self.SetBackgroundColour('gray')
+        self.SetBackgroundColour('white')
         panel = wx.Panel(self, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        LoadFile_btn = wx.Button(panel, id=wx.ID_ANY, label="1. Load Image", name="load")
 
         #Building UI items
             #buttons
+        LoadFile_btn = wx.Button(panel, id=wx.ID_ANY, label="1. Load Image", name="load")
         ProcessFile1_btn = wx.Button(panel, id=wx.ID_ANY, label="2. Identify center/edge", name="process1")
         ProcessFile2_btn = wx.Button(panel, id=wx.ID_ANY, label="3. Calculate Relationshps", name="process2")
 
@@ -94,6 +102,8 @@ class MyForm(wx.Frame):
        global attributes
        global circle_coutours
        global area_at_half_height
+       global frame_height
+       global frame_width
 
        button_id = event.GetId()
        button_by_id = self.FindWindowById(button_id)
@@ -121,9 +131,16 @@ class MyForm(wx.Frame):
            w,h= bitmap.GetSize()
            control = wx.StaticBitmap(self, -1, bitmap)
            control.SetPosition((200, 10))
-           w= w+300
-           h= h+240
-           self.SetSize((w, h))
+           _h = frame_height
+           _w = frame_width
+           print h, w, frame_height, frame_width
+           if h > frame_height:
+               _h = h + frame_height
+
+           if w > frame_width:
+               _w = w + frame_width +10
+           self.SetSize((_w, _h))
+
 
            openFileDialog.Destroy()
 

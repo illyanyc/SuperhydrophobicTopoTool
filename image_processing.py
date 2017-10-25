@@ -33,6 +33,8 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     overlay_image = overlay
     _phone = phone
     _tri = tri
+    wetted = 0
+    not_wetted = 0
 
     #if dimentions are entered: pixel to distance conversion ratio
     dimentions_entered = values
@@ -240,7 +242,8 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                 #plt.text(p[0], p[1],"*",fontsize=15,color='green')  # label triangles
                 #t1 = plt.Polygon(t_p, color=Y[0])
                 #triangles.gca().add_patch(t1)
-                poly = matplotlib.patches.Polygon(t_p,closed=True,color='green',alpha=0.5)
+                poly = matplotlib.patches.Polygon(t_p,closed=True,color='green',alpha=0.4)
+                not_wetted += 1
 
                 ax.add_patch(poly)
             else:
@@ -248,8 +251,8 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                 #plt.text(p[0], p[1],"*",fontsize=15,color='red')  # label triangles
                 #t1 = plt.Polygon(t_p, color=Y[0])
                 #triangles.gca().add_patch(t1)
-                poly = matplotlib.patches.Polygon(t_p,closed=True,color='red',alpha=0.5)
-
+                poly = matplotlib.patches.Polygon(t_p,closed=True,color='red',alpha=0.4)
+                wetted += 1
                 ax.add_patch(poly)
 
     ax.set_xlim(0, width)
@@ -285,10 +288,12 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             _feature_diameters.append(new_i)
 
         _feature_pitch=feature_pitch
+        _feature_distance=feature_distance
 
-        for i in feature_distance:
-            new_i=round(i*ratio*2)
-            _feature_distance.append(new_i)
+        #for i in feature_distance:
+        #    new_i=round(i*ratio*2)
+         #   _feature_distance.append(new_i)
+
 
     #endregion
     #final answer message
@@ -327,6 +332,10 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     #endregion
     #show overlayed image
     plt.show()
+    all_tri= float(wetted)+float(not_wetted)
+    print "Wetted: n=", float(wetted), ", ",\
+        float(wetted)/float(all_tri)*100,"% ","; Not Wetted: n=",\
+        float(not_wetted), ", ",float(not_wetted)/float(all_tri)*100,"% "
 
     #Plots:
     #plotting daimeter distributions
@@ -346,7 +355,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
         temp = d
         d = []
         for i in temp:
-            if i < average_pitch+2.5*stdev_pitch:
+            if i < average_pitch+3.5*stdev_pitch:
                 d.append(i)
         plot_name = 'Distribution of feature pitch'
         x_axis = 'Pitch, '
@@ -355,20 +364,23 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     #calculating and plotting distance between features
     if _distance_plot == True:
         if dimentions_entered == True:
-            d = _feature_pitch
+            d = _feature_distance
         else:
-            d = calculated_distance
+            d = feature_distance
+
         temp = d
         d = []
         for i in temp:
-            if i < average_distance + 3 * stdev_distance:
-                d.append(i)
+            if i < average_distance:
+                if i > 0:
+                    if i < average_pitch+3.0 * stdev_pitch:
+                        d.append(i)
 
         plot_name = 'Distance between the features'
         x_axis = 'Distance, '
         plots.histogram_plot(d, units, plot_name, x_axis)
 
-    # calculating and plotting distance between features
+    # calculating and plotting feature heights
     if _height_plot == True:
         _countours = countours
         d = []

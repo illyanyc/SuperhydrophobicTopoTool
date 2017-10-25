@@ -21,9 +21,9 @@ def histogram_plot(d,units,plot_name,x_axis):
     fig, ax = plt.subplots()
     d_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=15)
     x_label = x_axis+str(units)
-    plt.xlabel(x_label,fontsize=15)
-    plt.ylabel('Count, n',fontsize=15)
-    plt.title(plot_name, fontsize=15)
+    plt.xlabel(x_label,fontsize=21)
+    plt.ylabel('Count, n',fontsize=21)
+    plt.title(plot_name, fontsize=24)
 
     plt.grid(True)
     # Set the ticks to be at the edges of the bins.
@@ -42,10 +42,10 @@ def histogram_plot(d,units,plot_name,x_axis):
     # Label the raw counts and the percentages below the x-axis...
 
     bin_centers = 0.5 * np.diff(bins) + bins[:-1]
-    for count, x in zip(counts, bin_centers):
+    #for count, x in zip(counts, bin_centers):
         # Label the raw counts
-        ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
-                    xytext=(0, 65), textcoords='offset points', va='top', ha='center',rotation=90)
+        #ax.annotate(str(count), xy=(x, 0), xycoords=('data', 'axes fraction'),
+         #           xytext=(0, 65), textcoords='offset points', va='top', ha='center',rotation=90)
 
         # Label the percentages
         #percent = '%1.0f%%' % (100 * float(count) / counts.sum())
@@ -53,8 +53,8 @@ def histogram_plot(d,units,plot_name,x_axis):
         #           xytext=(0, 45), textcoords='offset points', va='top', ha='center')
     plt.axvline(x=average, color="red", linestyle='dashed', linewidth=2)
     #plt.text(0, 0, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
-    plt.xticks(rotation=70, fontsize=15)
-    plt.yticks(fontsize=15)
+    plt.xticks(rotation=70, fontsize=18)
+    plt.yticks(fontsize=18)
 
     # Give ourselves some more room at the bottom of the plot
     plt.subplots_adjust(bottom=0.15)
