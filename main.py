@@ -122,23 +122,26 @@ class MyForm(wx.Frame):
            fileToOpen = openFileDialog.GetPath()
            ext = os.path.splitext(fileToOpen)[-1].lower()
            print(ext)
-           if ext == ".jpg":
-               convert_to_png.convert(fileToOpen)
-               fileToOpen = fileToOpen+".png"
-
+           if ext != "":
+               bitmap = wx.Bitmap(fileToOpen)
+               w, h = bitmap.GetSize()
+               if ext != ".png":
+                   convert_to_png.convert(fileToOpen)
+                   fileToOpen = fileToOpen+".png"
            print(fileToOpen)
-           bitmap = wx.Bitmap(fileToOpen)
-           w,h= bitmap.GetSize()
+
+
            control = wx.StaticBitmap(self, -1, bitmap)
            control.SetPosition((200, 10))
            _h = frame_height
            _w = frame_width
-           print h, w, frame_height, frame_width
-           if h > frame_height:
-               _h = h + frame_height
 
-           if w > frame_width:
+           if h > frame_height-20:
+               _h = h + 40
+
+           if w > frame_width-10:
                _w = w + frame_width +10
+
            self.SetSize((_w, _h))
 
 

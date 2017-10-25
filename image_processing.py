@@ -23,7 +23,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     #init method
 
     start = strftime("%Y-%m-%d %H:%M:%S")
-    print start
+    print "Calculation Started: ",start
 
     #declare arrays and variables and bools for use in calculations
     feature_pitch = []
@@ -33,8 +33,10 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     overlay_image = overlay
     _phone = phone
     _tri = tri
-    wetted = 0
-    not_wetted = 0
+    n_wetted = 0
+    n_not_wetted = 0
+    n_sagitta = 0
+    arr_sagitta = []
 
     #if dimentions are entered: pixel to distance conversion ratio
     dimentions_entered = values
@@ -111,7 +113,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     for i,s in enumerate(tri.simplices):
         s = tri.simplices[i,:]
         p_arr = points[tri.simplices[i,:]]
-        print "simplex: ",s," at: ",i
+        #print "simplex: ",s," at: ",i
         vert_wetted = []
         triangle_coords = []
 
@@ -148,7 +150,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
 
             average_elevation_between_two_points = np.average(elevation1+elevation2)
             #plt.text(x1,y1,str(np.round(elevation1,0)))
-            print "Average Elevation: ",average_elevation_between_two_points
+            #print "Average Elevation: ",average_elevation_between_two_points
 
             #x_axis value
             diff_x = x2-x1
@@ -172,7 +174,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
             if dimentions_entered == True:
                 ratio = _width / width
                 average_diameter = round(average_diameter * ratio, 2)
-            print "pitch: ",pitch
+            #print "pitch: ",pitch
 
             sagitta_locations = []
             for b in attribute_array:
@@ -193,7 +195,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                         _area=c[0]
                         _diameter=round(2 * np.sqrt(_area / np.pi), 2)
                         sagitta_radius1 = _diameter
-                        print "Radius 1:", sagitta_radius1
+                        #print "Radius 1:", sagitta_radius1
 
             for c in sagitta_locations:
                 _cX = c[1]
@@ -203,7 +205,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                         _area = c[0]
                         _diameter = round(2 * np.sqrt(_area / np.pi), 2)
                         sagitta_radius2 = _diameter
-                        print "Radius 1:", sagitta_radius2
+                        #print "Radius 1:", sagitta_radius2
 
             #calculate Saggita
             x_for_saggita=pitch-sagitta_radius1/2-sagitta_radius2/2
@@ -211,6 +213,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                 x_for_saggita=pitch
 
             _sagitta = sag.sagitta(_ca, average_elevation_between_two_points, x_for_saggita, 0.0728)
+            arr_sagitta.append(_sagitta)
 
             #if _saggita >= average_elevation_between_two_points:
             if math.isnan(_sagitta) == False:
@@ -221,7 +224,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
 
             vert_wetted.append(wet_scale)
                 #print "WETTED!"
-            print "Saggita: ",_sagitta
+            #print "Saggita: ",_sagitta
 
             #populate the feature diamter list
             feature_pitch.append(pitch)
@@ -232,7 +235,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
 
         avg_vert_wetted = np.average(vert_wetted)
         t_p=np.array(triangle_coords)
-        print t_p
+        #print t_p
 
         #draw triangles for the surface wetting map
         if wet == True:
@@ -243,7 +246,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                 #t1 = plt.Polygon(t_p, color=Y[0])
                 #triangles.gca().add_patch(t1)
                 poly = matplotlib.patches.Polygon(t_p,closed=True,color='green',alpha=0.4)
-                not_wetted += 1
+                n_not_wetted += 1
 
                 ax.add_patch(poly)
             else:
@@ -252,7 +255,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
                 #t1 = plt.Polygon(t_p, color=Y[0])
                 #triangles.gca().add_patch(t1)
                 poly = matplotlib.patches.Polygon(t_p,closed=True,color='red',alpha=0.4)
-                wetted += 1
+                n_wetted += 1
                 ax.add_patch(poly)
 
     ax.set_xlim(0, width)
@@ -298,7 +301,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     #endregion
     #final answer message
     end = strftime("%Y-%m-%d %H:%M:%S")
-    print end
+    print "Calculation Ended: ",end
 
     #send SMS notification
     #region
@@ -332,10 +335,11 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     #endregion
     #show overlayed image
     plt.show()
-    all_tri= float(wetted)+float(not_wetted)
-    print "Wetted: n=", float(wetted), ", ",\
-        float(wetted)/float(all_tri)*100,"% ","; Not Wetted: n=",\
-        float(not_wetted), ", ",float(not_wetted)/float(all_tri)*100,"% "
+    all_tri= float(n_wetted)+float(n_not_wetted)
+    print "Triangle count: ",all_tri,"; Wetted: n=", float(n_wetted), ", ",\
+        float(n_wetted)/float(all_tri)*100,"% ","; Not Wetted: n=",\
+        float(n_not_wetted), ", ",float(n_not_wetted)/float(all_tri)*100,"% "
+    print "Sagitta Average: ",round(np.average(arr_sagitta),1), " ",units
 
     #Plots:
     #plotting daimeter distributions
