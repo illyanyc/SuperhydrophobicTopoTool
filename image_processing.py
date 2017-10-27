@@ -339,7 +339,7 @@ def triangulate(attribute_array, file, sms, overlay, values, width, height, unit
     print "Triangle count: ",all_tri,"; Wetted: n=", float(n_wetted), ", ",\
         float(n_wetted)/float(all_tri)*100,"% ","; Not Wetted: n=",\
         float(n_not_wetted), ", ",float(n_not_wetted)/float(all_tri)*100,"% "
-    print "Sagitta Average: ",round(np.average(arr_sagitta),1), " ",units
+    print "Sagitta Average: ",round(np.average(arr_sagitta),1), " ",units, " Stdev: ",round(np.std(arr_sagitta),1)
 
     #Plots:
     #plotting daimeter distributions

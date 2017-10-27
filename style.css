@@ -1,0 +1,27 @@
+div.intro{
+    margin-left: auto;
+    margin-right: auto;
+    font-family: Cardo;
+    font-weight: normal;
+    text-align: center;
+    color: #F0F8FF;
+    background-color: black;
+    max-width: 5000px;
+    padding: 7px;
+    margin: 0px
+}
+
+
+div.app{
+    margin: 1.3125em auto 0 auto;
+    padding: 25px;
+    width: 40em;
+    max-width: 100%;
+    text-align: justify;
+    font-family: Cardo, Bodoni, Bembo, Garamond, Georgia, Times, serif;
+    font-size: 100%;
+    font-weight: 100;
+    line-height: 1.625;
+    color: #000;
+    background-color: #F0F8FF;
+}

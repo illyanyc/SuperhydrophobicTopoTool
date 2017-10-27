@@ -2,7 +2,8 @@ from scipy.spatial import Delaunay
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter, MaxNLocator
+from matplotlib.ticker import FuncFormatter
 matplotlib.use('TkAgg')
 
 def histogram_plot(d,units,plot_name,x_axis):
@@ -21,15 +22,22 @@ def histogram_plot(d,units,plot_name,x_axis):
     fig, ax = plt.subplots()
     d_plot = counts, bins, patches = ax.hist(d, facecolor='g', edgecolor='gray', bins=15)
     x_label = x_axis+str(units)
-    plt.xlabel(x_label,fontsize=21)
-    plt.ylabel('Count, n',fontsize=21)
+    plt.xlabel(x_label,fontsize=24)
+    plt.ylabel('Count, n',fontsize=24)
     plt.title(plot_name, fontsize=24)
+
+
+    def format_func(value,tick_number):
+        N = int(np.round(value,2))
+        return r"%1.0f".format(N)
 
     plt.grid(True)
     # Set the ticks to be at the edges of the bins.
     ax.set_xticks(bins)
     # Set the xaxis's tick labels to be formatted with 1 decimal place...
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.0f'))
+    ax.xaxis.set_major_locator(MaxNLocator(intege=True))
+    #ax.xaxis.set_major_formatter(plt.FormatStrFormatter(format_func))
 
     # Change the colors of bars at the edges...
     fiftyfifth, _fiftyfifth = np.percentile(d, [50, 50])
@@ -51,10 +59,10 @@ def histogram_plot(d,units,plot_name,x_axis):
         #percent = '%1.0f%%' % (100 * float(count) / counts.sum())
         #ax.annotate(percent, xy=(x, 0), xycoords=('data', 'axes fraction'),
         #           xytext=(0, 45), textcoords='offset points', va='top', ha='center')
-    plt.axvline(x=average, color="red", linestyle='dashed', linewidth=2)
+    plt.axvline(x=average, color="red", linestyle='dashed', linewidth=5)
     #plt.text(0, 0, mean_label, color='black', bbox=dict(facecolor='white', edgecolor='red', boxstyle='round'))
-    plt.xticks(rotation=70, fontsize=18)
-    plt.yticks(fontsize=18)
+    plt.xticks(rotation=70, fontsize=20)
+    plt.yticks(fontsize=20)
 
     # Give ourselves some more room at the bottom of the plot
     plt.subplots_adjust(bottom=0.15)
